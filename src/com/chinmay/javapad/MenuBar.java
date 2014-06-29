@@ -1,6 +1,5 @@
 package com.chinmay.javapad;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -19,7 +18,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class MenuBar extends JMenuBar {
 	private JMenu fileMenu, editMenu, formatMenu, viewMenu, helpMenu;
 	private JMenuItem fileNew, fileOpen, fileSave, fileSaveAs, fileExit;
-	private JMenuItem editUndo, editCut, editCopy, editPaste, editDelete, editFind, editFindNext, editReplace, editSelectAll, editTimeDate;
+	private JMenuItem editUndo, editRedo, editCut, editCopy, editPaste, editDelete, editFind, editFindNext, editReplace, editSelectAll, editTimeDate;
 	private JMenuItem formatFont;
 	private JCheckBoxMenuItem viewStatusBar;
 	private JMenuItem helpView, helpAbout;
@@ -33,6 +32,46 @@ public class MenuBar extends JMenuBar {
 		this.viewer = viewer;
 	}
 	
+	public JMenuItem getEditCut() {
+		return editCut;
+	}
+
+	public void setEditCut(JMenuItem editCut) {
+		this.editCut = editCut;
+	}
+
+	public JMenuItem getEditCopy() {
+		return editCopy;
+	}
+
+	public void setEditCopy(JMenuItem editCopy) {
+		this.editCopy = editCopy;
+	}
+
+	public JMenuItem getEditPaste() {
+		return editPaste;
+	}
+
+	public void setEditPaste(JMenuItem editPaste) {
+		this.editPaste = editPaste;
+	}
+
+	public JMenuItem getEditDelete() {
+		return editDelete;
+	}
+
+	public void setEditDelete(JMenuItem editDelete) {
+		this.editDelete = editDelete;
+	}
+
+	public JMenuItem getEditSelectAll() {
+		return editSelectAll;
+	}
+
+	public void setEditSelectAll(JMenuItem editSelectAll) {
+		this.editSelectAll = editSelectAll;
+	}
+
 	public void initialize() {
 		generateMenus();
 		generateSubMenus();
@@ -40,6 +79,68 @@ public class MenuBar extends JMenuBar {
 	}
 
 	private void addActionListeners() {
+		addFileMenuListeners();
+		addEditMenuListeners();
+	}
+
+	private void addEditMenuListeners() {
+		editMenu.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				setButtons();				
+			}			
+		});
+		editUndo.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				((TabComponentPane) viewer.getSelectedComponent()).getTextArea().undo();
+			}
+		});
+		editRedo.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				((TabComponentPane) viewer.getSelectedComponent()).getTextArea().redo();
+			}
+		});
+		editCut.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				((TabComponentPane) viewer.getSelectedComponent()).getTextArea().cut();
+			}
+		});
+		editCopy.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				((TabComponentPane) viewer.getSelectedComponent()).getTextArea().copy();
+			}
+		});
+		editPaste.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				((TabComponentPane) viewer.getSelectedComponent()).getTextArea().paste();
+			}
+		});
+		editDelete.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				((TabComponentPane) viewer.getSelectedComponent()).getTextArea().delete();
+			}
+		});
+		editSelectAll.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				((TabComponentPane) viewer.getSelectedComponent()).getTextArea().selectAll();
+			}
+		});
+		editTimeDate.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				((TabComponentPane) viewer.getSelectedComponent()).getTextArea().addTimeDate();
+			}
+		});
+	}
+
+	private void addFileMenuListeners() {
 		fileNew.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -58,14 +159,6 @@ public class MenuBar extends JMenuBar {
 				viewer.generateNewTab(fc.getSelectedFile());
 			}			
 		});
-		fileExit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int result = JOptionPane.showConfirmDialog((JMenuItem) e.getSource(), "Are you sure you want to exit ?", "Exit Mine Sweeper", JOptionPane.YES_NO_OPTION);
-                if (result == JOptionPane.YES_OPTION)                     
-                        System.exit(0);
-			}			
-		});
 		fileSave.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -82,16 +175,29 @@ public class MenuBar extends JMenuBar {
 				}
 			}			
 		});
-		viewer.addChangeListener(new ChangeListener() {
+		fileExit.addActionListener(new ActionListener() {
 			@Override
-			public void stateChanged(ChangeEvent arg0) {
-				boolean atLeastOneTab = (viewer.getTabCount() > 0);
-				fileSave.setEnabled(atLeastOneTab);
-				fileSaveAs.setEnabled(atLeastOneTab);
-				for(Component subMenu:editMenu.getMenuComponents())
-					subMenu.setEnabled(atLeastOneTab);				
+			public void actionPerformed(ActionEvent e) {
+				viewer.close();
 			}			
 		});
+	}
+
+	public void setButtons() {
+		boolean atLeastOneTab = (viewer.getTabCount() > 0);
+		fileSave.setEnabled(atLeastOneTab);
+		fileSaveAs.setEnabled(atLeastOneTab);
+		editUndo.setEnabled(atLeastOneTab && ((TabComponentPane) viewer.getSelectedComponent()).getTextArea().isUndoEnabled());
+		editRedo.setEnabled(atLeastOneTab && ((TabComponentPane) viewer.getSelectedComponent()).getTextArea().isRedoEnabled());
+		editCut.setEnabled(atLeastOneTab && ((TabComponentPane) viewer.getSelectedComponent()).getTextArea().isCutEnabled());
+		editCopy.setEnabled(atLeastOneTab && ((TabComponentPane) viewer.getSelectedComponent()).getTextArea().isCopyEnabled());
+		editPaste.setEnabled(atLeastOneTab && ((TabComponentPane) viewer.getSelectedComponent()).getTextArea().isPasteEnabled());
+		editDelete.setEnabled(atLeastOneTab && ((TabComponentPane) viewer.getSelectedComponent()).getTextArea().isDeleteEnabled());
+		editSelectAll.setEnabled(atLeastOneTab && ((TabComponentPane) viewer.getSelectedComponent()).getTextArea().isSelectAllEnabled());
+		editFind.setEnabled(atLeastOneTab);
+		editFindNext.setEnabled(atLeastOneTab);
+		editReplace.setEnabled(atLeastOneTab);
+		editTimeDate.setEnabled(atLeastOneTab);
 	}
 
 	private void generateSubMenus() {
@@ -115,6 +221,10 @@ public class MenuBar extends JMenuBar {
 		editUndo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK));
 		editUndo.setEnabled(false);
 		editMenu.add(editUndo);
+		editRedo = new JMenuItem("Redo");
+		editRedo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK));
+		editRedo.setEnabled(false);
+		editMenu.add(editRedo);
 		editMenu.addSeparator();
 		editCut = new JMenuItem("Cut");
 		editCut.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK));

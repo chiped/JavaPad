@@ -21,13 +21,12 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class TabComponentPane extends JPanel {
-	private JTextArea textArea;
+	private TextArea textArea;
 	private JButton closeButton;
 	private JPanel titlePanel;
 	private String name;
@@ -35,12 +34,13 @@ public class TabComponentPane extends JPanel {
 	private File file;
 	private JLabel fileNameLabel;
 	private boolean edited;
+	private RightClickMenu popup;
 	
-	public JTextArea getTextArea() {
+	public TextArea getTextArea() {
 		return textArea;
 	}
 
-	public void setTextArea(JTextArea textArea) {
+	public void setTextArea(TextArea textArea) {
 		this.textArea = textArea;
 	}
 
@@ -79,11 +79,11 @@ public class TabComponentPane extends JPanel {
 	public TabComponentPane(String name, Viewer viewer) {
 		this.name = name;
 		this.viewer = viewer;
-		initialize();
 	}
 
-	private void initialize() {
-		textArea = new JTextArea();
+	public void initialize() {
+		textArea = new TextArea();
+		
 		JScrollPane scrollPane = new JScrollPane (textArea,                
         		JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); 
 		setLayout(new BorderLayout());
@@ -104,7 +104,7 @@ public class TabComponentPane extends JPanel {
 		titlePanel.add(closeButton);
 		titlePanel.setOpaque(false);
 
-		viewer.setTabComponentAt(totalTabs-1, titlePanel);
+		viewer.setTabComponentAt(totalTabs-1, titlePanel);		
 		
 		addListeners();
 	}
@@ -124,15 +124,16 @@ public class TabComponentPane extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				int option = JOptionPane.YES_OPTION;
+				boolean saved = false;
 				if(edited) {
-					option = JOptionPane.showConfirmDialog(TabComponentPane.this, "Changes were made to this file.\nDo you want to save?", "Warning", JOptionPane.YES_NO_CANCEL_OPTION);
+					option = JOptionPane.showConfirmDialog(TabComponentPane.this, "Changes were made to "+name+"\nDo you want to save?", "Warning", JOptionPane.YES_NO_CANCEL_OPTION);
 					if( option == JOptionPane.YES_OPTION) 
 						if(file==null)
-							saveFileAs();
+							saved = saveFileAs();
 						else
-							saveFile();
+							saved = saveFile();
 				}
-				if(option != JOptionPane.CANCEL_OPTION)
+				if( !edited || (option == JOptionPane.YES_OPTION && saved) || option == JOptionPane.NO_OPTION)
 					viewer.remove(viewer.indexOfComponent(TabComponentPane.this));
 			}			
 		});
@@ -152,29 +153,38 @@ public class TabComponentPane extends JPanel {
 			}
 			
 		});
+		
+		textArea.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent arg0) {
+				if(arg0.isPopupTrigger()) {
+					popup = new RightClickMenu(textArea);
+					popup.initialize();
+					popup.show(textArea, arg0.getX(), arg0.getY());
+				}
+			}
+		});
 	}
 
-	public void saveFile() {
+	public boolean saveFile() {
 		if(file==null) {
-			saveFileAs();
-			return;
+			return saveFileAs();
 		}
-		writeFile();
+		return writeFile();
 	}
 
-	public void saveFileAs() {
+	public boolean saveFileAs() {
 		JFileChooser fc = new JFileChooser();
 		fc.setFileFilter(new FileNameExtensionFilter("Text files(.txt)", "txt"));
 		fc.showSaveDialog(this);	
 		file = fc.getSelectedFile();
 		if(file==null)
-			return;
+			return false;
 		else if(!file.exists()) 
-			writeFile();
-		else if(JOptionPane.showConfirmDialog(this, "File Already Exists. Overwrite?", "Warning", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) 
-			writeFile();
-		
-        
+			return writeFile();
+		else if(JOptionPane.showConfirmDialog(this, file.getName()+" already exists. Overwrite?", "Warning", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) 
+			return writeFile();
+		return false;        
 	}
 	
 	public void openFile(File file) {
@@ -195,7 +205,7 @@ public class TabComponentPane extends JPanel {
 		}
 	}
 
-	private void writeFile() {
+	private boolean writeFile() {
 		try {
 			BufferedWriter fileWriter = new BufferedWriter(new FileWriter(file));
 			fileWriter.write(textArea.getText());
@@ -205,6 +215,8 @@ public class TabComponentPane extends JPanel {
 			name = file.getName();
 		} catch (IOException e) {
 			e.printStackTrace();
+			return false;
 		}
+		return true;
 	}
 }
