@@ -174,7 +174,7 @@ public class MenuBar extends JMenuBar {
 		editTimeDate.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				findMenu.setVisible(true);
+				((TabComponentPane) viewer.getSelectedComponent()).getTextArea().addTimeDate();
 			}
 		});
 		editFind.addActionListener(new ActionListener() {
