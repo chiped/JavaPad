@@ -2,7 +2,6 @@ package com.chinmay.javapad;
 
 import java.io.File;
 
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 

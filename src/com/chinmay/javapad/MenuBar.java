@@ -9,7 +9,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -20,9 +19,12 @@ public class MenuBar extends JMenuBar {
 	private JMenuItem fileNew, fileOpen, fileSave, fileSaveAs, fileExit;
 	private JMenuItem editUndo, editRedo, editCut, editCopy, editPaste, editDelete, editFind, editFindNext, editReplace, editSelectAll, editTimeDate;
 	private JMenuItem formatFont;
+	private JCheckBoxMenuItem formatWrap;
 	private JCheckBoxMenuItem viewStatusBar;
 	private JMenuItem helpView, helpAbout;
 	private Viewer viewer;
+	private FindMenu findMenu;
+	private StatusBar statusBar;
 	
 	public Viewer getViewer() {
 		return viewer;
@@ -72,15 +74,52 @@ public class MenuBar extends JMenuBar {
 		this.editSelectAll = editSelectAll;
 	}
 
+	public StatusBar getStatusBar() {
+		return statusBar;
+	}
+
+	public void setStatusBar(StatusBar statusBar) {
+		this.statusBar = statusBar;
+	}
+
 	public void initialize() {
 		generateMenus();
 		generateSubMenus();
+		generateFindMenu();
 		addActionListeners();
+	}
+
+	private void generateFindMenu() {
+		findMenu = new FindMenu();
+		findMenu.setViewer(viewer);
+		findMenu.initialize();
 	}
 
 	private void addActionListeners() {
 		addFileMenuListeners();
 		addEditMenuListeners();
+		viewer.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				setButtons();
+			}			
+		});
+		formatWrap.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				Global.setWrapped(formatWrap.isSelected());
+				for(int tabCounter=0; tabCounter<viewer.getTabCount(); tabCounter++)
+					((TabComponentPane) viewer.getComponentAt(tabCounter)).wrap();
+			}
+			
+		});
+		viewStatusBar.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				statusBar.setVisible(viewStatusBar.isSelected());
+			}			
+		});
 	}
 
 	private void addEditMenuListeners() {
@@ -135,7 +174,28 @@ public class MenuBar extends JMenuBar {
 		editTimeDate.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				((TabComponentPane) viewer.getSelectedComponent()).getTextArea().addTimeDate();
+				findMenu.setVisible(true);
+			}
+		});
+		editFind.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				findMenu.setLocationRelativeTo(viewer);
+				findMenu.setVisible(true);
+			}
+		});
+		editFindNext.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				findMenu.setLocationRelativeTo(viewer);
+				findMenu.findNext();
+			}
+		});
+		editReplace.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				findMenu.setLocationRelativeTo(viewer);
+				findMenu.setVisible(true);
 			}
 		});
 	}
@@ -239,10 +299,13 @@ public class MenuBar extends JMenuBar {
 		editMenu.add(editDelete);
 		editMenu.addSeparator();
 		editFind = new JMenuItem("Find");
+		editFind.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, ActionEvent.CTRL_MASK));
 		editMenu.add(editFind);
 		editFindNext = new JMenuItem("Find Next");
+		editFindNext.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
 		editMenu.add(editFindNext);
 		editReplace = new JMenuItem("Replace");
+		editFind.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, ActionEvent.CTRL_MASK));
 		editMenu.add(editReplace);
 		editMenu.addSeparator();
 		editSelectAll = new JMenuItem("Select All");
@@ -251,6 +314,8 @@ public class MenuBar extends JMenuBar {
 		editTimeDate = new JMenuItem("Time/Date");
 		editMenu.add(editTimeDate);
 		
+		formatWrap = new JCheckBoxMenuItem("Word Wrap");
+		formatMenu.add(formatWrap);
 		formatFont = new JMenuItem("Font");
 		formatMenu.add(formatFont);
 		

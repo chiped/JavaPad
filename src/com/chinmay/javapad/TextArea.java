@@ -1,20 +1,13 @@
 package com.chinmay.javapad;
 
-import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Calendar;
 
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoManager;
@@ -24,10 +17,33 @@ public class TextArea extends JTextArea {
 	private UndoManager undoManager;
 	
 	public TextArea() {
+		setWrapStyleWord(true);
+		setLineWrap(Global.isWrapped());
 		undoManager = new UndoManager();
 		getDocument().addUndoableEditListener(new UndoableEditListener() {
 			public void undoableEditHappened(UndoableEditEvent e) {
 				undoManager.addEdit(e.getEdit());
+			}
+		});
+
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				Global.getStatusBar().updateCaretPosition();
+			}
+			@Override
+			public void mousePressed(MouseEvent e) {
+				Global.getStatusBar().updateCaretPosition();
+			}
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				Global.getStatusBar().updateCaretPosition();
+			}
+		});
+		addMouseMotionListener(new MouseAdapter() {
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				Global.getStatusBar().updateCaretPosition();
 			}
 		});
 	}
@@ -87,5 +103,5 @@ public class TextArea extends JTextArea {
 		setText(newText.toString());
 		setCaretPosition(caretPosition + timeDate.length());
 	}
-	
+
 }

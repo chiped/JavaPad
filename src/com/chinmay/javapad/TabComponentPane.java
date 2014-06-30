@@ -35,6 +35,7 @@ public class TabComponentPane extends JPanel {
 	private JLabel fileNameLabel;
 	private boolean edited;
 	private RightClickMenu popup;
+	private JScrollPane scrollPane;
 	
 	public TextArea getTextArea() {
 		return textArea;
@@ -84,8 +85,8 @@ public class TabComponentPane extends JPanel {
 	public void initialize() {
 		textArea = new TextArea();
 		
-		JScrollPane scrollPane = new JScrollPane (textArea,                
-        		JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); 
+		scrollPane = new JScrollPane (textArea,                
+        		JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		setLayout(new BorderLayout());
 		add(scrollPane, BorderLayout.CENTER);
 		viewer.addTab(name, this);
@@ -104,8 +105,7 @@ public class TabComponentPane extends JPanel {
 		titlePanel.add(closeButton);
 		titlePanel.setOpaque(false);
 
-		viewer.setTabComponentAt(totalTabs-1, titlePanel);		
-		
+		viewer.setTabComponentAt(totalTabs-1, titlePanel);	
 		addListeners();
 	}
 
@@ -218,5 +218,9 @@ public class TabComponentPane extends JPanel {
 			return false;
 		}
 		return true;
+	}
+	
+	public void wrap() {
+		textArea.setLineWrap(Global.isWrapped());
 	}
 }
